@@ -143,6 +143,9 @@
         border: 1px solid var(--border);
         padding: 18px;
         min-height: 220px;
+        max-height: 280px;
+        display: flex;
+        flex-direction: column;
       }
       .panel h3 {
         margin-top: 0;
@@ -157,7 +160,9 @@
         border-radius: 6px;
         border: 1px solid var(--border);
         background: #0e0e0e;
-        height: 150px;
+        height: 180px;
+        max-height: 180px;
+        flex: 1;
       }
       .chart-skeleton {
         display: flex;
@@ -407,7 +412,6 @@
         const attemptData = paddedHistory.map((evt) => (evt ? Math.max(0, evt.attemptCount - 1) : 0));
         const recentCosts = history.map((evt) => Number(evt.costUsd.toFixed(4)));
         const maxCost = Math.max(...recentCosts, 0.001);
-        const boundedCost = 0.006;
         createChart('chart-cost', {
             type: 'line',
             data: {
@@ -427,14 +431,14 @@
             plugins: { legend: { display: false } },
             scales: {
               x: {
-                min: 1,
-                max: sliceSize,
                 ticks: { display: false }
               },
             y: {
                 beginAtZero: true,
-                suggestedMax: boundedCost,
-                max: boundedCost
+                ticks: {
+                  color: '#7a7a7a',
+                  font: { size: 11 }
+                }
               }
             },
             responsive: true,
