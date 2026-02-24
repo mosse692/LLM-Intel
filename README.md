@@ -1,6 +1,18 @@
-# LLM Cost & Reliability Copilot (MVP)
+# LLM Cost & Reliability Copilot
 
-A hackathon starter that implements a resilient LLM runtime plus dashboard for cost and outage visibility.
+**Self-hosted monitoring and resilience for LLM applications.**
+
+Track costs, handle outages, and optimize your LLM spend—all running locally on your infrastructure.
+
+## 🎯 Deployment Model
+
+**100% Self-Hosted** — Your data never leaves your machine:
+- ✅ Download and install the full stack in your project
+- ✅ Run `npm start` to launch server + dashboard
+- ✅ All data stays local (in-memory or your own PostgreSQL)
+- ✅ No accounts, no sign-ups, no external servers
+- ✅ Works offline and in air-gapped environments
+- ✅ **Zero monthly fees**
 
 ## What it includes
 
@@ -13,15 +25,35 @@ A hackathon starter that implements a resilient LLM runtime plus dashboard for c
 - alerts and action recommendations
 - Postgres persistence with daily rollups (memory fallback when DB is not configured)
 
-## Install and run
+## 🚀 Quick Start
 
 ```bash
+# 1. Clone and install
+git clone <your-repo-url>
+cd Dev_Dash
 npm install
+
+# 2. Start the server (includes API + Dashboard)
 npm start
+
+# 3. Open the dashboard
+open http://localhost:8787
 ```
 
-Open:
-- `http://localhost:8787/`
+**That's it!** No configuration needed. The dashboard will run with mock data by default.
+
+### Optional: Connect Real Providers
+
+Create a `.env` file:
+```bash
+# Use OpenAI
+OPENAI_API_KEY=sk-your-key-here
+DEFAULT_PROVIDER=openai
+
+# Or use Groq
+GROQ_API_KEY=gsk-your-key-here
+DEFAULT_PROVIDER=groq
+```
 
 ## Environment variables
 
