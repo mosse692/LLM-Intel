@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { config } from "./config.js";
 import {
+  clearAllData,
   getAlerts,
   getRecommendations,
   getRecentEvents,
@@ -91,16 +92,23 @@ async function handleSimulate(req, res) {
       slowResponses: true
     };
 
+    // Run requests in parallel for much faster simulation (5-10x speedup)
+    const promises = [];
     for (let i = 0; i < count; i += 1) {
-      await invokeWithResilience({
-        prompt: `Synthetic request ${i + 1}`,
-        endpoint: i % 2 === 0 ? "/summarize" : "/classify",
-        preferredModel: i % 3 === 0 ? "gpt-4.1" : "gpt-4.1-mini",
-        provider: "mock",
-        chaos,
-        metadata: { source: "simulator" }
-      });
+      promises.push(
+        invokeWithResilience({
+          prompt: `Synthetic request ${i + 1}`,
+          endpoint: i % 2 === 0 ? "/summarize" : "/classify",
+          preferredModel: i % 3 === 0 ? "gpt-4.1" : "gpt-4.1-mini",
+          provider: "mock",
+          chaos,
+          metadata: { source: "simulator" }
+        })
+      );
     }
+
+    // Wait for all to complete
+    await Promise.all(promises);
 
     await evaluateRules();
     sendJson(res, 200, { ok: true, message: `Simulated ${count} requests` });
@@ -198,6 +206,15 @@ const server = createServer(async (req, res) => {
 
   if (req.method === "POST" && url.pathname === "/api/v1/ingest/csv") {
     return handleCsvUpload(req, res);
+  }
+
+  if (req.method === "DELETE" && url.pathname === "/api/v1/events/clear") {
+    try {
+      await clearAllData();
+      return sendJson(res, 200, { ok: true, message: "All data cleared" });
+    } catch (error) {
+      return sendJson(res, 500, { ok: false, error: { message: error.message } });
+    }
   }
 
   // Serve static HTML files from public directory

@@ -375,3 +375,16 @@ export function getStoreInfo() {
     postgresEnabled: Boolean(pool)
   };
 }
+
+export async function clearAllData() {
+  if (pool) {
+    await Promise.all([
+      pool.query("DELETE FROM events"),
+      pool.query("DELETE FROM alerts"),
+      pool.query("DELETE FROM recommendations")
+    ]);
+  }
+  state.events = [];
+  state.alerts = [];
+  state.recommendations = [];
+}
