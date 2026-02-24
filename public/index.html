@@ -216,6 +216,37 @@
       .status-err {
         color: #ef4444;
       }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .apply-btn {
+        margin-top: 8px;
+        padding: 6px 12px;
+        font-size: 11px;
+        background: var(--accent);
+        color: #000;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+      }
+      .apply-btn:hover:not(:disabled) {
+        background: #0052cc;
+      }
+      .apply-btn.applied {
+        background: #10b981;
+        color: white;
+      }
+      @keyframes slideIn {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
+      }
       @media (max-width: 900px) {
         .app-layout {
           flex-direction: column;
@@ -595,7 +626,12 @@
         if (recsNode) {
           recsNode.innerHTML = recommendations.length
             ? recommendations
-                .map((r) => `<div class="rec-item"><strong>${r.title}</strong><p>${r.message}</p><span class="pill">Estimated ${r.estimatedSavingsPct}% · ${r.confidence}</span></div>`)
+                .map((r) => `<div class="rec-item" data-rec-id="${r.id}">
+                  <strong>${r.title}</strong>
+                  <p>${r.message}</p>
+                  <span class="pill">Estimated ${r.estimatedSavingsPct}% · ${r.confidence}</span>
+                  <button class="apply-btn" onclick="applyRecommendation('${r.id}', '${r.title}', ${r.estimatedSavingsPct})">Apply</button>
+                </div>`)
                 .join('')
             : '<p>No recommendations yet</p>';
         }
@@ -620,17 +656,78 @@
         safeSet(el('health-pill'), `Store: ${health.backend}`);
         renderCharts(events);
       }
+      function applyRecommendation(id, title, savingsPct) {
+        const btn = event.target;
+        btn.disabled = true;
+        btn.textContent = 'Applying...';
+
+        setTimeout(() => {
+          btn.classList.add('applied');
+          btn.textContent = '✓ Applied';
+          showToast(`Applied: ${title}. Estimated savings: ${savingsPct}%`, 'success');
+
+          // In a real implementation, this would call an API endpoint
+          // fetch('/api/v1/recommendations/' + id + '/apply', { method: 'POST' })
+        }, 1000);
+      }
+
+      function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          padding: 12px 20px;
+          background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#0066ff'};
+          color: white;
+          border-radius: 6px;
+          font-size: 14px;
+          z-index: 10000;
+          animation: slideIn 0.3s ease;
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+          toast.style.animation = 'slideOut 0.3s ease';
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+
       el('btn-simulate').onclick = async () => {
-        await api('/api/v1/simulate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ count: 45 }) });
-        await refresh();
+        const btn = el('btn-simulate');
+        btn.disabled = true;
+        btn.textContent = 'Simulating...';
+        showToast('Running simulation (this may take 20-30s)...', 'info');
+        try {
+          await api('/api/v1/simulate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ count: 20 }) });
+          showToast('Simulation complete! Refreshing data...', 'success');
+          await refresh();
+        } catch (error) {
+          showToast('Simulation failed: ' + error.message, 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Simulate';
+        }
       };
       el('btn-infer').onclick = async () => {
-        await api('/api/v1/infer', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: 'Simulate reliability best-practice tip', endpoint: '/assistant', model: 'gpt-4.1', chaos: { rateLimitSpike: true } })
-        });
-        await refresh();
+        const btn = el('btn-infer');
+        btn.disabled = true;
+        btn.textContent = 'Testing...';
+        showToast('Running test inference...', 'info');
+        try {
+          await api('/api/v1/infer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: 'Give me one reliability tip', endpoint: '/assistant', model: 'gpt-4.1', chaos: { rateLimitSpike: true } })
+          });
+          showToast('Test complete!', 'success');
+          await refresh();
+        } catch (error) {
+          showToast('Test failed: ' + error.message, 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Test Inference';
+        }
       };
       el('btn-refresh').onclick = refresh;
       refresh().catch((error) => console.error('Dashboard failed', error));

@@ -96,6 +96,35 @@ export async function evaluateRules() {
     return;
   }
 
+  // R4: Prompt caching detection
+  // Check if there are repeated prompts/prefixes that could benefit from caching
+  const endpointGroups = recent20.reduce((acc, e) => {
+    if (!acc[e.endpoint]) acc[e.endpoint] = [];
+    acc[e.endpoint].push(e);
+    return acc;
+  }, {});
+
+  for (const [endpoint, events] of Object.entries(endpointGroups)) {
+    if (events.length >= 5) {
+      // Check if these requests have high input token counts (indicating large prompts)
+      const avgInputTokens = events.reduce((sum, e) => sum + e.inputTokens, 0) / events.length;
+      const highInputCalls = events.filter((e) => e.inputTokens > 100).length;
+
+      if (avgInputTokens > 150 && highInputCalls >= 3) {
+        await addRecommendation({
+          ruleId: "R4",
+          title: "Enable prompt caching",
+          message:
+            `Endpoint ${endpoint} has ${highInputCalls} calls with high input tokens (avg ${Math.round(avgInputTokens)}). Consider prompt caching for repeated prefixes.`,
+          estimatedSavingsPct: 35,
+          confidence: "medium"
+        });
+        lastRecommendationAt = now;
+        return;
+      }
+    }
+  }
+
   const heavyOutputs = recent20.filter(
     (e) => e.success && e.outputTokens > 320
   ).length;

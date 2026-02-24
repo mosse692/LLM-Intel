@@ -8,7 +8,8 @@ import {
   getRecentEvents,
   getStoreInfo,
   getSummary,
-  initStore
+  initStore,
+  recordEvent
 } from "./metrics-store.js";
 import { invokeWithResilience } from "./resilient-client.js";
 import { evaluateRules } from "./rules.js";
@@ -108,6 +109,53 @@ async function handleSimulate(req, res) {
   }
 }
 
+async function handleCsvUpload(req, res) {
+  try {
+    const body = await readJsonBody(req);
+    const csvData = body.csv || "";
+
+    if (!csvData) {
+      return sendJson(res, 400, { ok: false, error: { message: "No CSV data provided" } });
+    }
+
+    const lines = csvData.trim().split("\n");
+    const headers = lines[0].toLowerCase().split(",");
+
+    let imported = 0;
+    for (let i = 1; i < lines.length; i += 1) {
+      const values = lines[i].split(",");
+      const row = {};
+      headers.forEach((header, idx) => {
+        row[header.trim()] = values[idx]?.trim() || "";
+      });
+
+      // Expected CSV format: timestamp,model,endpoint,input_tokens,output_tokens,cost_usd,latency_ms,status_code
+      if (row.timestamp && row.model) {
+        await recordEvent({
+          endpoint: row.endpoint || "/unknown",
+          model: row.model,
+          provider: row.provider || "imported",
+          success: Number(row.status_code) === 200,
+          statusCode: Number(row.status_code) || 200,
+          latencyMs: Number(row.latency_ms) || 0,
+          inputTokens: Number(row.input_tokens) || 0,
+          outputTokens: Number(row.output_tokens) || 0,
+          attemptCount: 1,
+          totalRetryDelayMs: 0,
+          usedFallbackModel: false,
+          metadata: { source: "csv_import" }
+        });
+        imported += 1;
+      }
+    }
+
+    await evaluateRules();
+    sendJson(res, 200, { ok: true, message: `Imported ${imported} events from CSV` });
+  } catch (error) {
+    sendJson(res, 400, { ok: false, error: { message: error.message } });
+  }
+}
+
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
@@ -146,6 +194,10 @@ const server = createServer(async (req, res) => {
 
   if (req.method === "POST" && url.pathname === "/api/v1/simulate") {
     return handleSimulate(req, res);
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/v1/ingest/csv") {
+    return handleCsvUpload(req, res);
   }
 
   // Serve static HTML files from public directory
