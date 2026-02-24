@@ -256,6 +256,257 @@
         from { transform: translateX(0); opacity: 1; }
         to { transform: translateX(400px); opacity: 0; }
       }
+
+      /* Settings Page Styles */
+      .settings-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 32px;
+      }
+      .settings-section {
+        padding: 24px 0;
+      }
+      .settings-header {
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--text);
+        margin: 0 0 16px 0;
+      }
+      .settings-content {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .settings-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 8px 0;
+      }
+
+      /* Toggle Switch */
+      .toggle-label {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        cursor: pointer;
+        padding: 12px 16px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        transition: all 0.2s;
+      }
+      .toggle-label:hover {
+        background: var(--surface-strong);
+        border-color: var(--accent);
+      }
+      .toggle-wrapper {
+        position: relative;
+        width: 44px;
+        height: 24px;
+        flex-shrink: 0;
+      }
+      .toggle-input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .toggle-slider {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--border);
+        border-radius: 24px;
+        transition: 0.3s;
+      }
+      .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background: white;
+        border-radius: 50%;
+        transition: 0.3s;
+      }
+      .toggle-input:checked + .toggle-slider {
+        background: var(--accent);
+      }
+      .toggle-input:checked + .toggle-slider:before {
+        transform: translateX(20px);
+      }
+      .toggle-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .toggle-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text);
+      }
+      .toggle-desc {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      /* Settings Inputs */
+      .setting-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 16px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+      }
+      .setting-label {
+        font-size: 13px;
+        color: var(--text);
+      }
+      .setting-input {
+        width: 90px;
+        padding: 6px 10px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 4px;
+        font-size: 13px;
+        text-align: right;
+        transition: all 0.2s;
+      }
+      .setting-input:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+      .setting-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .field-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text);
+      }
+      .setting-input-full {
+        width: 100%;
+        padding: 10px 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 6px;
+        font-size: 13px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        transition: all 0.2s;
+      }
+      .setting-input-full[type="password"] {
+        font-family: monospace;
+      }
+      .setting-input-full:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: var(--surface-strong);
+      }
+      .field-hint {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: -4px;
+      }
+
+      /* Checkbox */
+      .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        padding: 10px 16px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        transition: all 0.2s;
+      }
+      .checkbox-label:hover {
+        background: var(--surface-strong);
+      }
+      .checkbox-input {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--accent);
+      }
+      .checkbox-text {
+        font-size: 13px;
+        color: var(--text);
+      }
+
+      /* Settings Buttons */
+      .settings-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 13px;
+        font-weight: 500;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .btn-icon {
+        font-size: 16px;
+      }
+      .settings-btn-secondary {
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+      .settings-btn-secondary:hover:not(:disabled) {
+        background: var(--surface-strong);
+        border-color: var(--accent);
+      }
+      .settings-btn-danger {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+      .settings-btn-danger:hover:not(:disabled) {
+        background: rgba(239, 68, 68, 0.2);
+        border-color: #ef4444;
+      }
+      .settings-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* Warning Box */
+      .warning-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 14px;
+        background: rgba(245, 158, 11, 0.05);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        border-radius: 6px;
+      }
+      .warning-icon {
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+      .warning-text {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
       @media (max-width: 900px) {
         .app-layout {
           flex-direction: column;
@@ -389,81 +640,106 @@
             </div>
           </section>
           <section class="view" data-view="settings">
-            <div class="panel">
-              <h3>Appearance</h3>
-              <div style="margin-top: 16px;">
-                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
-                  <input type="checkbox" id="theme-toggle" style="width: 20px; height: 20px; cursor: pointer;">
-                  <span>Dark Mode</span>
-                </label>
+            <div class="settings-container">
+              <div class="settings-section">
+                <h3 class="settings-header">Appearance</h3>
+                <div class="settings-content">
+                  <label class="toggle-label">
+                    <div class="toggle-wrapper">
+                      <input type="checkbox" id="theme-toggle" class="toggle-input">
+                      <span class="toggle-slider"></span>
+                    </div>
+                    <div class="toggle-text">
+                      <span class="toggle-title">Dark Mode</span>
+                      <span class="toggle-desc">Use dark theme across the dashboard</span>
+                    </div>
+                  </label>
+                </div>
               </div>
-            </div>
 
-            <div class="panel">
-              <h3>Alert Thresholds</h3>
-              <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
-                <label style="display: flex; justify-content: space-between;">
-                  <span>Cost Spike Threshold:</span>
-                  <input type="number" value="1.4" step="0.1" min="1.0" style="width: 80px; padding: 4px; background: var(--surface-strong); border: 1px solid var(--border); color: var(--text); border-radius: 4px;">
-                </label>
-                <label style="display: flex; justify-content: space-between;">
-                  <span>Error Rate Threshold (%):</span>
-                  <input type="number" value="8" step="1" min="0" style="width: 80px; padding: 4px; background: var(--surface-strong); border: 1px solid var(--border); color: var(--text); border-radius: 4px;">
-                </label>
-                <label style="display: flex; justify-content: space-between;">
-                  <span>P95 Latency Threshold (ms):</span>
-                  <input type="number" value="2500" step="100" min="0" style="width: 80px; padding: 4px; background: var(--surface-strong); border: 1px solid var(--border); color: var(--text); border-radius: 4px;">
-                </label>
-                <label style="display: flex; justify-content: space-between;">
-                  <span>Daily Budget (USD):</span>
-                  <input type="number" value="10" step="1" min="0" style="width: 80px; padding: 4px; background: var(--surface-strong); border: 1px solid var(--border); color: var(--text); border-radius: 4px;">
-                </label>
+              <div class="settings-divider"></div>
+
+              <div class="settings-section">
+                <h3 class="settings-header">Alert Thresholds</h3>
+                <div class="settings-content">
+                  <div class="setting-row">
+                    <label class="setting-label">Cost Spike Threshold</label>
+                    <input type="number" value="1.4" step="0.1" min="1.0" class="setting-input">
+                  </div>
+                  <div class="setting-row">
+                    <label class="setting-label">Error Rate Threshold (%)</label>
+                    <input type="number" value="8" step="1" min="0" class="setting-input">
+                  </div>
+                  <div class="setting-row">
+                    <label class="setting-label">P95 Latency Threshold (ms)</label>
+                    <input type="number" value="2500" step="100" min="0" class="setting-input">
+                  </div>
+                  <div class="setting-row">
+                    <label class="setting-label">Daily Budget (USD)</label>
+                    <input type="number" value="10" step="1" min="0" class="setting-input">
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div class="panel">
-              <h3>API Configuration</h3>
-              <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
-                <label style="display: flex; flex-direction: column; gap: 4px;">
-                  <span>OpenAI API Key:</span>
-                  <input type="password" placeholder="sk-..." style="padding: 8px; background: var(--surface-strong); border: 1px solid var(--border); color: var(--text); border-radius: 4px; font-family: monospace;">
-                </label>
-                <label style="display: flex; flex-direction: column; gap: 4px;">
-                  <span>Groq API Key:</span>
-                  <input type="password" placeholder="gsk_..." style="padding: 8px; background: var(--surface-strong); border: 1px solid var(--border); color: var(--text); border-radius: 4px; font-family: monospace;">
-                </label>
-                <label style="display: flex; flex-direction: column; gap: 4px;">
-                  <span>Default Provider:</span>
-                  <select style="padding: 8px; background: var(--surface-strong); border: 1px solid var(--border); color: var(--text); border-radius: 4px;">
-                    <option value="mock">Mock (Demo)</option>
-                    <option value="openai">OpenAI</option>
-                    <option value="groq">Groq</option>
-                  </select>
-                </label>
+              <div class="settings-divider"></div>
+
+              <div class="settings-section">
+                <h3 class="settings-header">API Configuration</h3>
+                <div class="settings-content">
+                  <div class="setting-field">
+                    <label class="field-label">OpenAI API Key</label>
+                    <input type="password" placeholder="sk-..." class="setting-input-full">
+                  </div>
+                  <div class="setting-field">
+                    <label class="field-label">Groq API Key</label>
+                    <input type="password" placeholder="gsk_..." class="setting-input-full">
+                  </div>
+                  <div class="setting-field">
+                    <label class="field-label">Default Provider</label>
+                    <select class="setting-input-full">
+                      <option value="mock">Mock (Demo)</option>
+                      <option value="openai">OpenAI</option>
+                      <option value="groq">Groq</option>
+                    </select>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div class="panel">
-              <h3>Project Settings</h3>
-              <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
-                <label style="display: flex; flex-direction: column; gap: 4px;">
-                  <span>Project ID:</span>
-                  <input type="text" value="default" placeholder="team-a-product" style="padding: 8px; background: var(--surface-strong); border: 1px solid var(--border); color: var(--text); border-radius: 4px;">
-                  <small style="color: var(--muted); font-size: 11px;">Use this to separate data by team/project</small>
-                </label>
-                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
-                  <input type="checkbox" style="width: 16px; height: 16px; cursor: pointer;">
-                  <span>Enable auto-refresh (15s)</span>
-                </label>
+              <div class="settings-divider"></div>
+
+              <div class="settings-section">
+                <h3 class="settings-header">Project Settings</h3>
+                <div class="settings-content">
+                  <div class="setting-field">
+                    <label class="field-label">Project ID</label>
+                    <input type="text" value="default" placeholder="team-a-product" class="setting-input-full">
+                    <small class="field-hint">Use this to separate data by team/project</small>
+                  </div>
+                  <label class="checkbox-label">
+                    <input type="checkbox" class="checkbox-input">
+                    <span class="checkbox-text">Enable auto-refresh (15s)</span>
+                  </label>
+                </div>
               </div>
-            </div>
 
-            <div class="panel">
-              <h3>Data Management</h3>
-              <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
-                <button id="btn-export" class="apply-btn" style="width: 100%; margin: 0;">Export Data (JSON)</button>
-                <button id="btn-clear" class="apply-btn" style="width: 100%; margin: 0; background: #ef4444;">Clear All Data</button>
-                <small style="color: var(--muted); font-size: 11px;">⚠️ Clearing data is irreversible</small>
+              <div class="settings-divider"></div>
+
+              <div class="settings-section">
+                <h3 class="settings-header">Data Management</h3>
+                <div class="settings-content">
+                  <button id="btn-export" class="settings-btn settings-btn-secondary">
+                    <span class="btn-icon">📥</span>
+                    Export Data (JSON)
+                  </button>
+                  <button id="btn-clear" class="settings-btn settings-btn-danger">
+                    <span class="btn-icon">🗑️</span>
+                    Clear All Data
+                  </button>
+                  <div class="warning-box">
+                    <span class="warning-icon">⚠️</span>
+                    <span class="warning-text">Clearing data is irreversible and will delete all events, alerts, and recommendations</span>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
