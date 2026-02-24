@@ -1,0 +1,15 @@
+{
+  "name": "llm-cost-reliability-copilot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Resilient LLM client layer with cost and reliability observability",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "demo:flow": "bash scripts/demo-flow.sh"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  }
+}
