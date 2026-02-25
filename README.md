@@ -29,8 +29,8 @@ Track costs, handle outages, and optimize your LLM spend—all running locally o
 
 ```bash
 # 1. Clone and install
-git clone https://github.com/mosse692/LLM-Interl.git
-cd LLM-Interl
+git clone https://github.com/mosse692/LLM-Intel.git
+cd LLM-Intel
 npm install
 
 # 2. Start the server (includes API + Dashboard)

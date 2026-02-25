@@ -6,12 +6,12 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mosse692/LLM-Interl.git"
+    "url": "https://github.com/mosse692/LLM-Intel.git"
   },
   "bugs": {
-    "url": "https://github.com/mosse692/LLM-Interl/issues"
+    "url": "https://github.com/mosse692/LLM-Intel/issues"
   },
-  "homepage": "https://github.com/mosse692/LLM-Interl#readme",
+  "homepage": "https://github.com/mosse692/LLM-Intel#readme",
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",

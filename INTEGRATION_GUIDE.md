@@ -6,8 +6,8 @@
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/mosse692/LLM-Interl.git
-cd LLM-Interl
+git clone https://github.com/mosse692/LLM-Intel.git
+cd LLM-Intel
 
 # 2. Install dependencies
 npm install
