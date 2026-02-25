@@ -48,6 +48,16 @@
         font-size: 18px;
         letter-spacing: 0.4em;
         text-transform: uppercase;
+        cursor: pointer;
+        transition: color 0.2s;
+      }
+      .logo:hover {
+        color: var(--accent);
+      }
+      .logo a {
+        color: inherit;
+        text-decoration: none;
+        display: block;
       }
       .nav-item {
         padding: 10px 12px;
@@ -522,7 +532,7 @@
   <body>
     <div class="app-layout">
       <nav class="sidebar">
-      <div class="logo">LLM INTEL</div>
+      <div class="logo"><a href="/landing.html">LLM INTEL</a></div>
         <div class="nav-item active" data-view="dashboard">Dashboard</div>
         <div class="nav-item" data-view="analytics">Analytics</div>
         <div class="nav-item" data-view="events">Events</div>
