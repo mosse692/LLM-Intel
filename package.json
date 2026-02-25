@@ -2,8 +2,16 @@
   "name": "llm-cost-reliability-copilot",
   "version": "0.1.0",
   "private": true,
-  "description": "Resilient LLM client layer with cost and reliability observability",
+  "description": "Self-hosted cost & reliability monitoring for LLM applications",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mosse692/LLM-Interl.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mosse692/LLM-Interl/issues"
+  },
+  "homepage": "https://github.com/mosse692/LLM-Interl#readme",
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",

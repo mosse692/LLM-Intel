@@ -6,8 +6,8 @@
 
 ```bash
 # 1. Clone the repository
-git clone <your-repo-url>
-cd Dev_Dash
+git clone https://github.com/mosse692/LLM-Interl.git
+cd LLM-Interl
 
 # 2. Install dependencies
 npm install

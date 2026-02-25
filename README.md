@@ -29,8 +29,8 @@ Track costs, handle outages, and optimize your LLM spend—all running locally o
 
 ```bash
 # 1. Clone and install
-git clone <your-repo-url>
-cd Dev_Dash
+git clone https://github.com/mosse692/LLM-Interl.git
+cd LLM-Interl
 npm install
 
 # 2. Start the server (includes API + Dashboard)
