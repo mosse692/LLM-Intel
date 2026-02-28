@@ -1,5 +1,7 @@
 import { config, defaultRoutingByProvider } from "./config.js";
-import { recordEvent } from "./metrics-store.js";
+import { getDailySpend, recordEvent } from "./metrics-store.js";
+import { anthropicModelCall } from "./providers/anthropic-provider.js";
+import { geminiModelCall } from "./providers/gemini-provider.js";
 import { mockModelCall } from "./providers/mock-provider.js";
 import { openaiModelCall } from "./providers/openai-provider.js";
 import { groqModelCall } from "./providers/groq-provider.js";
@@ -36,13 +38,21 @@ function getProviderRouting(provider) {
   );
 }
 
-async function callProvider({ provider, prompt, model, chaos, maxOutputTokens }) {
+async function callProvider({ provider, prompt, messages, model, chaos, maxOutputTokens }) {
   if (provider === "openai") {
     return openaiModelCall({ prompt, model, maxOutputTokens });
   }
 
   if (provider === "groq") {
-    return groqModelCall({ prompt, model, maxOutputTokens });
+    return groqModelCall({ prompt, messages, model, maxOutputTokens });
+  }
+
+  if (provider === "anthropic") {
+    return anthropicModelCall({ prompt, model, maxOutputTokens });
+  }
+
+  if (provider === "gemini") {
+    return geminiModelCall({ prompt, model, maxOutputTokens });
   }
 
   return mockModelCall({ prompt, model, chaos });
@@ -50,6 +60,7 @@ async function callProvider({ provider, prompt, model, chaos, maxOutputTokens })
 
 export async function invokeWithResilience({
   prompt,
+  messages,
   endpoint = "/default",
   preferredModel,
   provider,
@@ -58,6 +69,18 @@ export async function invokeWithResilience({
   maxOutputTokens
 }) {
   const effectiveProvider = provider || config.defaultProvider;
+
+  // Hard budget stop — refuse before making any API call
+  const dailySpend = await getDailySpend();
+  if (dailySpend >= config.budgetDailyUsd) {
+    const err = new Error(
+      `Daily budget of $${config.budgetDailyUsd} exceeded (spent $${dailySpend.toFixed(4)} today)`
+    );
+    err.code = 429;
+    err.retryable = false;
+    throw err;
+  }
+
   const providerRouting = getProviderRouting(effectiveProvider);
   const primaryModel = preferredModel || providerRouting.primary;
   const fallbackModel = providerRouting.fallback;
@@ -77,6 +100,7 @@ export async function invokeWithResilience({
           callProvider({
             provider: effectiveProvider,
             prompt,
+            messages,
             model,
             chaos,
             maxOutputTokens
@@ -120,7 +144,7 @@ export async function invokeWithResilience({
             success: false,
             statusCode,
             latencyMs: Date.now() - started,
-            inputTokens: error.inputTokens || Math.max(1, Math.ceil(prompt.length / 4)),
+            inputTokens: error.inputTokens || Math.max(1, Math.ceil((prompt || "").length / 4)),
             outputTokens: error.outputTokens || 0,
             attemptCount,
             totalRetryDelayMs,

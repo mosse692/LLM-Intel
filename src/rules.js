@@ -2,12 +2,14 @@ import { config } from "./config.js";
 import {
   addAlert,
   addRecommendation,
+  getDailySpend,
   getRecentEvents,
   getSummary
 } from "./metrics-store.js";
 
 let lastCostAlertAt = 0;
 let lastReliabilityAlertAt = 0;
+let lastBudgetAlertAt = 0;
 let lastRecommendationAt = 0;
 
 const ALERT_COOLDOWN_MS = 5 * 60 * 1000;
@@ -19,6 +21,20 @@ export async function evaluateRules() {
   if (!recent.length) return;
 
   const summary = await getSummary(80);
+
+  // Budget hard-limit alert (fires regardless of request count)
+  const dailySpend = await getDailySpend();
+  if (
+    dailySpend >= config.budgetDailyUsd &&
+    now - lastBudgetAlertAt > ALERT_COOLDOWN_MS
+  ) {
+    await addAlert({
+      type: "budget_exceeded",
+      severity: "critical",
+      message: `Daily budget of $${config.budgetDailyUsd} exceeded — spent $${dailySpend.toFixed(4)} today. All inference is blocked until midnight or budget is raised.`
+    });
+    lastBudgetAlertAt = now;
+  }
 
   // Need sufficient data to make reliable decisions
   if (recent.length < 20) return;

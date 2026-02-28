@@ -369,6 +369,19 @@ export async function getRecommendations(limit = 30) {
   return result.rows.map(fromDbRecRow);
 }
 
+export async function getDailySpend() {
+  const todayPrefix = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  if (!pool) {
+    return state.events
+      .filter((e) => e.timestamp.startsWith(todayPrefix))
+      .reduce((sum, e) => sum + e.costUsd, 0);
+  }
+  const result = await pool.query(
+    "SELECT COALESCE(SUM(cost_usd), 0) AS total FROM events WHERE timestamp::date = CURRENT_DATE"
+  );
+  return Number(result.rows[0]?.total || 0);
+}
+
 export function getStoreInfo() {
   return {
     backend: state.backend,

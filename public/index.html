@@ -36,19 +36,20 @@
         min-height: 100vh;
       }
       .sidebar {
-        width: 260px;
+        width: 256px;
         background: var(--surface);
-        border-right: 1px solid var(--border);
-        padding: 24px;
+        padding: 24px 16px;
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 4px;
       }
       .logo {
-        font-size: 18px;
-        letter-spacing: 0.4em;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.25em;
         text-transform: uppercase;
         cursor: pointer;
+        padding: 8px 12px 20px;
         transition: color 0.2s;
       }
       .logo:hover {
@@ -60,23 +61,28 @@
         display: block;
       }
       .nav-item {
-        padding: 10px 12px;
-        border-radius: 6px;
+        padding: 9px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
         color: var(--muted);
         cursor: pointer;
+        transition: color 0.2s;
+      }
+      .nav-item:hover {
+        color: var(--text);
       }
       .nav-item.active {
         color: var(--text);
-        background: rgba(255, 255, 255, 0.05);
+        background: transparent;
       }
       .badge {
         margin-top: auto;
-        font-size: 12px;
-        padding: 4px 10px;
-        border-radius: 999px;
-        border: 1px solid var(--border);
+        font-size: 11px;
+        padding: 4px 10px 4px 12px;
         color: var(--muted);
         text-transform: uppercase;
+        letter-spacing: 0.05em;
       }
       .main {
         flex: 1;
@@ -136,20 +142,26 @@
       }
       .metric-card {
         background: var(--surface-strong);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 18px;
+        border-radius: 16px;
+        padding: 20px;
+        transition: box-shadow 0.2s;
+      }
+      .metric-card:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.12);
       }
       .metric-label {
         font-size: 11px;
-        letter-spacing: 0.4em;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         color: var(--muted);
-        margin-bottom: 8px;
+        margin-bottom: 10px;
+        font-weight: 500;
       }
       .metric-value {
-        font-size: 32px;
-        font-weight: 600;
+        font-size: 30px;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+        line-height: 1;
       }
       .panels {
         display: grid;
@@ -158,27 +170,30 @@
       }
       .panel {
         background: var(--surface);
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        padding: 18px;
+        border-radius: 16px;
+        padding: 20px;
         min-height: 220px;
-        max-height: 280px;
         display: flex;
         flex-direction: column;
+        transition: box-shadow 0.2s;
+      }
+      .panel:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
       }
       .panel h3 {
         margin-top: 0;
-        font-size: 12px;
-        letter-spacing: 0.4em;
+        margin-bottom: 0;
+        font-size: 11px;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         color: var(--muted);
+        font-weight: 600;
       }
       .chart-skeleton,
       .chart-canvas {
-        margin-top: 10px;
-        border-radius: 6px;
-        border: 1px solid var(--border);
-        background: #0e0e0e;
+        margin-top: 12px;
+        border-radius: 8px;
+        background: var(--surface-strong);
         height: 180px;
         max-height: 180px;
         flex: 1;
@@ -257,6 +272,47 @@
       .apply-btn.applied {
         background: #10b981;
         color: white;
+      }
+      .section-info {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 4px 0 0;
+      }
+      .top-row h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+      }
+      .budget-bar-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 180px;
+        align-self: center;
+      }
+      .budget-bar-label {
+        font-size: 11px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        display: flex;
+        justify-content: space-between;
+      }
+      .budget-bar-track {
+        height: 4px;
+        background: var(--surface-strong);
+        border-radius: 99px;
+        overflow: hidden;
+      }
+      .budget-bar-fill {
+        height: 100%;
+        border-radius: 99px;
+        background: var(--accent);
+        transition: width 0.4s ease, background 0.3s;
+      }
+      .budget-bar-fill.over-budget {
+        background: #ef4444;
       }
       @keyframes slideIn {
         from { transform: translateX(400px); opacity: 0; }
@@ -546,6 +602,15 @@
             <h1>Overview</h1>
             <p class="section-info">Real-time monitoring and analytics</p>
           </div>
+          <div id="budget-bar-wrap" class="budget-bar-wrap" style="display:none">
+            <div class="budget-bar-label">
+              <span>Daily Budget</span>
+              <span id="budget-bar-text">—</span>
+            </div>
+            <div class="budget-bar-track">
+              <div id="budget-bar-fill" class="budget-bar-fill" style="width:0%"></div>
+            </div>
+          </div>
           <div class="controls">
             <button class="primary" id="btn-simulate">Simulate</button>
             <button id="btn-infer">Test Inference</button>
@@ -705,11 +770,21 @@
                     <input type="password" placeholder="gsk_..." class="setting-input-full">
                   </div>
                   <div class="setting-field">
+                    <label class="field-label">Anthropic API Key</label>
+                    <input type="password" placeholder="sk-ant-..." class="setting-input-full">
+                  </div>
+                  <div class="setting-field">
+                    <label class="field-label">Gemini API Key</label>
+                    <input type="password" placeholder="AIza..." class="setting-input-full">
+                  </div>
+                  <div class="setting-field">
                     <label class="field-label">Default Provider</label>
                     <select class="setting-input-full">
                       <option value="mock">Mock (Demo)</option>
                       <option value="openai">OpenAI</option>
                       <option value="groq">Groq</option>
+                      <option value="anthropic">Anthropic (Claude)</option>
+                      <option value="gemini">Google (Gemini)</option>
                     </select>
                   </div>
                 </div>
@@ -1011,7 +1086,7 @@
         if (alertsTable) {
           alertsTable.innerHTML = alerts.length
             ? alerts.map((a) => `<tr>
-                <td>${new Date(a.timestamp).toLocaleString()}</td>
+                <td>${new Date(a.createdAt).toLocaleString()}</td>
                 <td>${a.type || 'N/A'}</td>
                 <td><span class="pill ${a.severity}">${a.severity}</span></td>
                 <td>${a.message}</td>
@@ -1050,6 +1125,22 @@
             .join('');
         }
         safeSet(el('health-pill'), `Store: ${health.backend}`);
+
+        // Budget bar
+        if (health.budget) {
+          const { spentTodayUsd, dailyLimitUsd, exceeded } = health.budget;
+          const pct = Math.min(100, (spentTodayUsd / dailyLimitUsd) * 100);
+          const wrap = el('budget-bar-wrap');
+          const fill = el('budget-bar-fill');
+          const label = el('budget-bar-text');
+          if (wrap) wrap.style.display = 'flex';
+          if (fill) {
+            fill.style.width = `${pct.toFixed(1)}%`;
+            fill.classList.toggle('over-budget', exceeded);
+          }
+          if (label) label.textContent = `$${spentTodayUsd.toFixed(2)} / $${dailyLimitUsd}`;
+        }
+
         renderCharts(events);
       }
       function applyRecommendation(id, title, savingsPct) {

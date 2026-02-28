@@ -23,6 +23,10 @@ export const config = {
   openaiBaseUrl: process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
   groqApiKey: process.env.GROQ_API_KEY || "",
   groqBaseUrl: process.env.GROQ_BASE_URL || "https://api.groq.com/openai/v1",
+  anthropicApiKey: process.env.ANTHROPIC_API_KEY || "",
+  anthropicBaseUrl: process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com/v1",
+  geminiApiKey: process.env.GEMINI_API_KEY || "",
+  geminiBaseUrl: process.env.GEMINI_BASE_URL || "https://generativelanguage.googleapis.com/v1beta",
   defaultProvider: process.env.DEFAULT_PROVIDER || "mock"
 };
 
@@ -31,7 +35,13 @@ export const modelCostsPer1k = {
   "gpt-4.1-mini": { input: 0.001, output: 0.003 },
   "gpt-4o-mini": { input: 0.0006, output: 0.0024 },
   "llama-3.1-8b-instant": { input: 0.00005, output: 0.00008 },
-  "llama-3.3-70b-versatile": { input: 0.00059, output: 0.00079 }
+  "llama-3.3-70b-versatile": { input: 0.00059, output: 0.00079 },
+  "claude-opus-4-6": { input: 0.015, output: 0.075 },
+  "claude-sonnet-4-6": { input: 0.003, output: 0.015 },
+  "claude-haiku-4-5-20251001": { input: 0.0008, output: 0.004 },
+  "gemini-2.0-flash": { input: 0.000075, output: 0.0003 },
+  "gemini-1.5-flash": { input: 0.000075, output: 0.0003 },
+  "gemini-1.5-pro": { input: 0.00125, output: 0.005 }
 };
 
 export const defaultRoutingByProvider = {
@@ -46,5 +56,13 @@ export const defaultRoutingByProvider = {
   groq: {
     primary: process.env.GROQ_PRIMARY_MODEL || "llama-3.1-8b-instant",
     fallback: process.env.GROQ_FALLBACK_MODEL || "llama-3.3-70b-versatile"
+  },
+  anthropic: {
+    primary: process.env.ANTHROPIC_PRIMARY_MODEL || "claude-sonnet-4-6",
+    fallback: process.env.ANTHROPIC_FALLBACK_MODEL || "claude-haiku-4-5-20251001"
+  },
+  gemini: {
+    primary: process.env.GEMINI_PRIMARY_MODEL || "gemini-2.0-flash",
+    fallback: process.env.GEMINI_FALLBACK_MODEL || "gemini-1.5-flash"
   }
 };

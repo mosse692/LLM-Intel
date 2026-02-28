@@ -5,6 +5,7 @@ import { config } from "./config.js";
 import {
   clearAllData,
   getAlerts,
+  getDailySpend,
   getRecommendations,
   getRecentEvents,
   getStoreInfo,
@@ -44,7 +45,8 @@ function notFound(res) {
 async function handleInfer(req, res) {
   try {
     const body = await readJsonBody(req);
-    const prompt = body.prompt || "Summarize this request in one sentence.";
+    const messages = body.messages; // OpenAI-format array: [{ role, content }]
+    const prompt = messages ? undefined : (body.prompt || "Summarize this request in one sentence.");
     const endpoint = body.endpoint || "/chat";
     const preferredModel = body.model;
     const provider = body.provider;
@@ -53,6 +55,7 @@ async function handleInfer(req, res) {
 
     const result = await invokeWithResilience({
       prompt,
+      messages,
       endpoint,
       preferredModel,
       provider,
@@ -172,7 +175,17 @@ const server = createServer(async (req, res) => {
   }
 
   if (req.method === "GET" && url.pathname === "/api/v1/health") {
-    return sendJson(res, 200, { ok: true, ...getStoreInfo() });
+    const dailySpend = await getDailySpend();
+    return sendJson(res, 200, {
+      ok: true,
+      ...getStoreInfo(),
+      budget: {
+        dailyLimitUsd: config.budgetDailyUsd,
+        spentTodayUsd: Number(dailySpend.toFixed(4)),
+        remainingUsd: Number(Math.max(0, config.budgetDailyUsd - dailySpend).toFixed(4)),
+        exceeded: dailySpend >= config.budgetDailyUsd
+      }
+    });
   }
 
   if (req.method === "GET" && url.pathname === "/api/v1/dashboard/summary") {

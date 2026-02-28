@@ -18,13 +18,15 @@ function extractText(content) {
   return "";
 }
 
-export async function groqModelCall({ prompt, model, maxOutputTokens }) {
+export async function groqModelCall({ prompt, messages, model, maxOutputTokens }) {
   if (!config.groqApiKey) {
     const err = new Error("GROQ_API_KEY is not set");
     err.code = 401;
     err.retryable = false;
     throw err;
   }
+
+  const resolvedMessages = messages || [{ role: "user", content: prompt }];
 
   const started = Date.now();
   const response = await fetch(`${config.groqBaseUrl}/chat/completions`, {
@@ -35,7 +37,7 @@ export async function groqModelCall({ prompt, model, maxOutputTokens }) {
     },
     body: JSON.stringify({
       model,
-      messages: [{ role: "user", content: prompt }],
+      messages: resolvedMessages,
       max_tokens: maxOutputTokens || 500,
       temperature: 0.2
     })
