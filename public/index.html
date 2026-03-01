@@ -200,8 +200,8 @@
         margin-top: 4px;
         border-radius: 8px;
         background: var(--surface-strong);
-        height: 220px;
-        max-height: 220px;
+        height: 240px;
+        max-height: 240px;
         flex: 1;
       }
       .chart-skeleton {
@@ -914,8 +914,9 @@
       }
 
       function renderCharts(events = []) {
-        const MUTED = '#7a7a7a';
-        const GRID = 'rgba(255,255,255,0.05)';
+        const isLight = document.body.classList.contains('light-theme');
+        const MUTED = isLight ? '#888' : '#7a7a7a';
+        const GRID = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.07)';
         const sliceSize = 30;
         const history = events.length ? [...events].slice(-sliceSize) : [];
         const paddingCount = Math.max(sliceSize - history.length, 0);
@@ -939,10 +940,11 @@
               label: 'Cost per Request',
               data: costData,
               borderColor: '#4BD5FF',
-              backgroundColor: 'rgba(75,213,255,0.1)',
+              backgroundColor: 'rgba(75,213,255,0.08)',
               borderWidth: 2,
               tension: 0.3,
               pointRadius: 3,
+              fill: true,
               spanGaps: true
             }]
           },
@@ -978,7 +980,9 @@
             datasets: [{
               label: 'Requests',
               data: latencyBuckets.map((b) => b.value),
-              backgroundColor: '#0A84FF'
+              backgroundColor: '#0A84FF',
+              borderRadius: 6,
+              maxBarThickness: 80
             }]
           },
           options: {
@@ -1017,11 +1021,12 @@
               label: 'Status',
               data: errorPctData,
               borderColor: '#ff5c5c',
-              backgroundColor: 'rgba(255,92,92,0.15)',
+              backgroundColor: 'rgba(255,92,92,0.1)',
               borderWidth: 2,
               stepped: true,
               tension: 0,
               pointRadius: 3,
+              fill: true,
               spanGaps: true
             }]
           },
@@ -1082,7 +1087,9 @@
             datasets: [{
               label: 'Request Count',
               data: epData.length ? epData.map((d) => d.count) : [0],
-              backgroundColor: '#0A84FF'
+              backgroundColor: '#0A84FF',
+              borderRadius: 4,
+              maxBarThickness: 36
             }]
           },
           options: {
@@ -1116,7 +1123,9 @@
             datasets: [{
               label: 'Avg Latency',
               data: hourlyData.length ? hourlyData.map((d) => d.avgLatency) : [0],
-              backgroundColor: '#4BD5FF'
+              backgroundColor: '#4BD5FF',
+              borderRadius: 6,
+              maxBarThickness: 60
             }]
           },
           options: {
@@ -1151,10 +1160,11 @@
               label: 'Retries',
               data: attemptData,
               borderColor: '#ff9f4d',
-              backgroundColor: 'rgba(255,159,77,0.15)',
+              backgroundColor: 'rgba(255,159,77,0.1)',
               borderWidth: 2,
               tension: 0.3,
               pointRadius: 3,
+              fill: true,
               spanGaps: true
             }]
           },
@@ -1185,11 +1195,13 @@
         createChart('chart-callers', {
           type: 'bar',
           data: {
-            labels: providerData.map((d) => d.provider),
+            labels: providerData.length ? providerData.map((d) => d.provider) : ['No data yet'],
             datasets: [{
               label: 'Request Count',
-              data: providerData.map((d) => d.value),
-              backgroundColor: ['#4BD5FF', '#ff9f4d', '#00b37e', '#7c3aed', '#f97316']
+              data: providerData.length ? providerData.map((d) => d.value) : [0],
+              backgroundColor: ['#4BD5FF', '#ff9f4d', '#00b37e', '#7c3aed', '#f97316'],
+              borderRadius: 6,
+              maxBarThickness: 60
             }]
           },
           options: {
@@ -1493,6 +1505,7 @@
             document.body.classList.add('light-theme');
             localStorage.setItem('theme', 'light');
           }
+          refresh();
         });
       }
     </script>
