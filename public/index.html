@@ -622,21 +622,25 @@
             <div class="metrics-grid" id="summary-grid"></div>
             <div class="panels">
             <div class="panel">
-              <h3>Performance Metrics</h3>
+              <h3>Cost per Request</h3>
+              <p style="color:var(--muted);font-size:12px;margin:-8px 0 12px">USD cost of each inference call over time</p>
               <canvas id="chart-cost" class="chart-canvas"></canvas>
             </div>
             <div class="panel">
               <h3>Latency Distribution</h3>
+              <p style="color:var(--muted);font-size:12px;margin:-8px 0 12px">How many requests fall into each response-time bucket</p>
               <canvas id="chart-latency" class="chart-canvas"></canvas>
             </div>
             </div>
             <div class="panels">
             <div class="panel">
               <h3>Error Rate Trend</h3>
+              <p style="color:var(--muted);font-size:12px;margin:-8px 0 12px">Success vs. error per request (flat = all OK, spike = error)</p>
               <canvas id="chart-errors" class="chart-canvas"></canvas>
             </div>
             <div class="panel">
-              <h3>Model Usage</h3>
+              <h3>Provider Usage</h3>
+              <p style="color:var(--muted);font-size:12px;margin:-8px 0 12px">Share of requests routed to each LLM provider</p>
               <canvas id="chart-models" class="chart-canvas"></canvas>
             </div>
             </div>
@@ -674,21 +678,25 @@
           </section>
           <section class="view" data-view="analytics">
           <div class="panel">
-            <h3>Analytics Overview</h3>
+            <h3>Requests by Endpoint</h3>
+            <p style="color:var(--muted);font-size:12px;margin:-8px 0 12px">Which routes are called most often</p>
             <canvas id="chart-analytics" class="chart-canvas"></canvas>
           </div>
           <div class="panel">
-            <h3>Hourly Distribution</h3>
+            <h3>Avg Latency by Hour</h3>
+            <p style="color:var(--muted);font-size:12px;margin:-8px 0 12px">Average response time grouped by hour of day</p>
             <canvas id="chart-hourly" class="chart-canvas"></canvas>
           </div>
           </section>
           <section class="view" data-view="events">
           <div class="panel">
-            <h3>Events Timeline</h3>
+            <h3>Retry Timeline</h3>
+            <p style="color:var(--muted);font-size:12px;margin:-8px 0 12px">Number of retries per request over time</p>
             <canvas id="chart-events" class="chart-canvas"></canvas>
           </div>
           <div class="panel">
-            <h3>Top Callers</h3>
+            <h3>Requests by Provider</h3>
+            <p style="color:var(--muted);font-size:12px;margin:-8px 0 12px">Total requests routed to each LLM provider</p>
             <canvas id="chart-callers" class="chart-canvas"></canvas>
           </div>
           </section>
@@ -858,17 +866,16 @@
       }
 
       function buildLatencyBuckets(latencies) {
-        const ranges = [1000, 2000, 3000, 4000, 5000];
+        const ranges = [500, 1000, 2000, 3000, 5000];
+        const labels = ['<500ms', '<1s', '<2s', '<3s', '>3s'];
         const buckets = ranges.map(() => 0);
         latencies.forEach((lat) => {
           for (let i = 0; i < ranges.length; i += 1) {
-            if (lat <= ranges[i]) {
-              buckets[i] += 1;
-              return;
-            }
+            if (lat <= ranges[i]) { buckets[i] += 1; return; }
           }
+          buckets[ranges.length - 1] += 1;
         });
-        return ranges.map((limit, idx) => `${limit}ms`).map((label, idx) => ({ label, value: buckets[idx] }));
+        return labels.map((label, idx) => ({ label, value: buckets[idx] }));
       }
 
       function providerUsage(events) {
@@ -880,7 +887,29 @@
         return Object.entries(counts).map(([provider, value]) => ({ provider, value }));
       }
 
+      function endpointBreakdown(events) {
+        const map = {};
+        events.forEach((evt) => { const ep = evt.endpoint || '/unknown'; map[ep] = (map[ep] || 0) + 1; });
+        return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 8)
+          .map(([endpoint, count]) => ({ endpoint, count }));
+      }
+
+      function hourlyLatency(events) {
+        const map = {};
+        events.forEach((evt) => {
+          const h = new Date(evt.timestamp).getHours();
+          const key = `${String(h).padStart(2, '0')}:00`;
+          if (!map[key]) map[key] = { total: 0, count: 0 };
+          map[key].total += evt.latencyMs;
+          map[key].count++;
+        });
+        return Object.entries(map).sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([hour, d]) => ({ hour, avgLatency: Math.round(d.total / d.count) }));
+      }
+
       function renderCharts(events = []) {
+        const MUTED = '#7a7a7a';
+        const GRID = 'rgba(255,255,255,0.05)';
         const sliceSize = 30;
         const history = events.length ? [...events].slice(-sliceSize) : [];
         const paddingCount = Math.max(sliceSize - history.length, 0);
@@ -888,167 +917,297 @@
           ...Array.from({ length: paddingCount }, () => null),
           ...history
         ];
-        const labels = paddedHistory.map((evt, idx) => (evt ? new Date(evt.timestamp).toLocaleTimeString() : `#${idx + 1}`));
-        const costData = paddedHistory.map((evt) => (evt ? Number(evt.costUsd.toFixed(4)) : 0));
-        const errorData = paddedHistory.map((evt) => (evt ? (evt.success ? 0 : 1) : 0));
-        const attemptData = paddedHistory.map((evt) => (evt ? Math.max(0, evt.attemptCount - 1) : 0));
-        const recentCosts = history.map((evt) => Number(evt.costUsd.toFixed(4)));
-        const maxCost = Math.max(...recentCosts, 0.001);
+        const labels = paddedHistory.map((evt) =>
+          evt ? new Date(evt.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''
+        );
+        const costData = paddedHistory.map((evt) => evt ? Number(evt.costUsd.toFixed(6)) : null);
+        const errorPctData = paddedHistory.map((evt) => evt ? (evt.success ? 0 : 100) : null);
+        const attemptData = paddedHistory.map((evt) => evt ? Math.max(0, evt.attemptCount - 1) : null);
+
+        // 1. Performance Metrics — cost per request over time
         createChart('chart-cost', {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [
-              {
-                label: 'Cost USD',
-                data: costData,
-                borderColor: '#4BD5FF',
-                backgroundColor: 'rgba(75,213,255,0.2)',
-                borderWidth: 2,
-                tension: 0.3
-              }
-            ]
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Cost per Request',
+              data: costData,
+              borderColor: '#4BD5FF',
+              backgroundColor: 'rgba(75,213,255,0.1)',
+              borderWidth: 2,
+              tension: 0.3,
+              pointRadius: 3,
+              spanGaps: true
+            }]
           },
           options: {
-            plugins: { legend: { display: false } },
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: (ctx) => ` $${Number(ctx.raw).toFixed(6)}` } }
+            },
             scales: {
               x: {
-                ticks: { display: false }
+                title: { display: true, text: 'Time', color: MUTED, font: { size: 11 } },
+                ticks: { color: MUTED, font: { size: 10 }, maxTicksLimit: 8, maxRotation: 45 },
+                grid: { color: GRID }
               },
-            y: {
+              y: {
+                title: { display: true, text: 'Cost (USD)', color: MUTED, font: { size: 11 } },
                 beginAtZero: true,
-                ticks: {
-                  color: '#7a7a7a',
-                  font: { size: 11 }
-                }
+                ticks: { color: MUTED, font: { size: 10 }, callback: (v) => `$${Number(v).toFixed(4)}` },
+                grid: { color: GRID }
               }
             },
             responsive: true,
             maintainAspectRatio: false
           }
         });
+
+        // 2. Latency Distribution — histogram of response time buckets
         const latencyBuckets = buildLatencyBuckets(history.map((evt) => evt.latencyMs));
         createChart('chart-latency', {
           type: 'bar',
           data: {
             labels: latencyBuckets.map((b) => b.label),
-            datasets: [
-              {
-                data: latencyBuckets.map((b) => b.value),
-                backgroundColor: '#0A84FF'
-              }
-            ]
+            datasets: [{
+              label: 'Requests',
+              data: latencyBuckets.map((b) => b.value),
+              backgroundColor: '#0A84FF'
+            }]
           },
           options: {
-            plugins: { legend: { display: false } },
-            animation: false
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: {
+                title: (items) => `Response time: ${items[0].label}`,
+                label: (ctx) => ` ${ctx.raw} request${ctx.raw !== 1 ? 's' : ''}`
+              }}
+            },
+            scales: {
+              x: {
+                title: { display: true, text: 'Response Time Bucket', color: MUTED, font: { size: 11 } },
+                ticks: { color: MUTED, font: { size: 10 } },
+                grid: { display: false }
+              },
+              y: {
+                title: { display: true, text: 'Request Count', color: MUTED, font: { size: 11 } },
+                beginAtZero: true,
+                ticks: { color: MUTED, font: { size: 10 }, precision: 0 },
+                grid: { color: GRID }
+              }
+            },
+            animation: false,
+            responsive: true,
+            maintainAspectRatio: false
           }
         });
+
+        // 3. Error Rate Trend — success/error per request over time
         createChart('chart-errors', {
           type: 'line',
           data: {
             labels,
-            datasets: [
-              {
-                label: 'Errors',
-                data: errorData,
-                borderColor: '#ff5c5c',
-                backgroundColor: 'rgba(255,92,92,0.2)',
-                borderWidth: 2,
-                stepped: true,
-                tension: 0
-              }
-            ]
+            datasets: [{
+              label: 'Status',
+              data: errorPctData,
+              borderColor: '#ff5c5c',
+              backgroundColor: 'rgba(255,92,92,0.15)',
+              borderWidth: 2,
+              stepped: true,
+              tension: 0,
+              pointRadius: 3,
+              spanGaps: true
+            }]
           },
           options: {
-            plugins: { legend: { display: false } },
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: (ctx) => ctx.raw === 100 ? ' Error' : ' Success' } }
+            },
             scales: {
               x: {
-                min: 1,
-                max: sliceSize
+                title: { display: true, text: 'Time', color: MUTED, font: { size: 11 } },
+                ticks: { color: MUTED, font: { size: 10 }, maxTicksLimit: 8, maxRotation: 45 },
+                grid: { color: GRID }
               },
-              y: { beginAtZero: true, suggestedMax: 1 }
+              y: {
+                title: { display: true, text: 'Request Status', color: MUTED, font: { size: 11 } },
+                beginAtZero: true,
+                suggestedMax: 100,
+                ticks: {
+                  color: MUTED, font: { size: 10 },
+                  stepSize: 100,
+                  callback: (v) => v === 0 ? 'Success' : v === 100 ? 'Error' : ''
+                },
+                grid: { color: GRID }
+              }
             },
             responsive: true,
             maintainAspectRatio: false
           }
         });
+
+        // 4. Provider Usage — doughnut showing share by provider
         const providerData = providerUsage(events);
         createChart('chart-models', {
           type: 'doughnut',
           data: {
             labels: providerData.map((d) => d.provider),
-            datasets: [
-              {
-                data: providerData.map((d) => d.value),
-                backgroundColor: ['#4BD5FF', '#ff9f4d', '#00b37e', '#7c3aed', '#f97316']
-              }
-            ]
+            datasets: [{
+              data: providerData.map((d) => d.value),
+              backgroundColor: ['#4BD5FF', '#ff9f4d', '#00b37e', '#7c3aed', '#f97316']
+            }]
           },
           options: {
-            plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } },
+            plugins: {
+              legend: { position: 'bottom', labels: { color: MUTED, padding: 12, font: { size: 11 } } },
+              tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw} request${ctx.raw !== 1 ? 's' : ''}` } }
+            },
             responsive: true,
             maintainAspectRatio: false
           }
         });
+
+        // 5. Requests by Endpoint — horizontal bar showing which endpoints are hit most
+        const epData = endpointBreakdown(events);
         createChart('chart-analytics', {
           type: 'bar',
           data: {
-            labels: labels.slice(-6),
-            datasets: [
-              {
-                label: 'Requests',
-                data: history.slice(-6).map((evt) => evt.requestCount || 1),
-                backgroundColor: '#0A84FF'
-              }
-            ]
+            labels: epData.length ? epData.map((d) => d.endpoint) : ['No data yet'],
+            datasets: [{
+              label: 'Request Count',
+              data: epData.length ? epData.map((d) => d.count) : [0],
+              backgroundColor: '#0A84FF'
+            }]
           },
-          options: { plugins: { legend: { display: false } } }
+          options: {
+            indexAxis: 'y',
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} request${ctx.raw !== 1 ? 's' : ''}` } }
+            },
+            scales: {
+              x: {
+                title: { display: true, text: 'Request Count', color: MUTED, font: { size: 11 } },
+                ticks: { color: MUTED, font: { size: 10 }, precision: 0 },
+                grid: { color: GRID }
+              },
+              y: {
+                ticks: { color: MUTED, font: { size: 10 } },
+                grid: { display: false }
+              }
+            },
+            responsive: true,
+            maintainAspectRatio: false
+          }
         });
+
+        // 6. Avg Latency by Hour — bar showing response time grouped by hour of day
+        const hourlyData = hourlyLatency(events);
         createChart('chart-hourly', {
           type: 'bar',
           data: {
-            labels: labels.slice(0, 6),
-            datasets: [
-              {
-                label: 'Latency',
-                data: history.slice(0, 6).map((evt) => evt.latencyMs),
-                backgroundColor: '#4BD5FF'
-              }
-            ]
+            labels: hourlyData.length ? hourlyData.map((d) => d.hour) : ['No data yet'],
+            datasets: [{
+              label: 'Avg Latency',
+              data: hourlyData.length ? hourlyData.map((d) => d.avgLatency) : [0],
+              backgroundColor: '#4BD5FF'
+            }]
           },
-          options: { plugins: { legend: { display: false } } }
+          options: {
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw}ms avg` } }
+            },
+            scales: {
+              x: {
+                title: { display: true, text: 'Hour of Day', color: MUTED, font: { size: 11 } },
+                ticks: { color: MUTED, font: { size: 10 } },
+                grid: { display: false }
+              },
+              y: {
+                title: { display: true, text: 'Avg Latency (ms)', color: MUTED, font: { size: 11 } },
+                beginAtZero: true,
+                ticks: { color: MUTED, font: { size: 10 }, callback: (v) => `${v}ms` },
+                grid: { color: GRID }
+              }
+            },
+            responsive: true,
+            maintainAspectRatio: false
+          }
         });
+
+        // 7. Events Timeline — retry count per request over time
         createChart('chart-events', {
           type: 'line',
           data: {
             labels,
-            datasets: [
-              {
-                label: 'Retries',
-                data: attemptData,
-                borderColor: '#ff9f4d',
-                backgroundColor: 'rgba(255,159,77,0.2)',
-                borderWidth: 2,
-                tension: 0.3
-              }
-            ]
+            datasets: [{
+              label: 'Retries',
+              data: attemptData,
+              borderColor: '#ff9f4d',
+              backgroundColor: 'rgba(255,159,77,0.15)',
+              borderWidth: 2,
+              tension: 0.3,
+              pointRadius: 3,
+              spanGaps: true
+            }]
           },
-          options: { plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false }
+          options: {
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} retr${ctx.raw === 1 ? 'y' : 'ies'}` } }
+            },
+            scales: {
+              x: {
+                title: { display: true, text: 'Time', color: MUTED, font: { size: 11 } },
+                ticks: { color: MUTED, font: { size: 10 }, maxTicksLimit: 8, maxRotation: 45 },
+                grid: { color: GRID }
+              },
+              y: {
+                title: { display: true, text: 'Retry Count', color: MUTED, font: { size: 11 } },
+                beginAtZero: true,
+                ticks: { color: MUTED, font: { size: 10 }, precision: 0 },
+                grid: { color: GRID }
+              }
+            },
+            responsive: true,
+            maintainAspectRatio: false
+          }
         });
+
+        // 8. Requests by Provider — bar showing volume per provider
         createChart('chart-callers', {
           type: 'bar',
           data: {
             labels: providerData.map((d) => d.provider),
-            datasets: [
-              {
-                label: 'Events',
-                data: providerData.map((d) => d.value),
-                backgroundColor: ['#4BD5FF', '#ff9f4d', '#00b37e', '#7c3aed', '#f97316']
-              }
-            ]
+            datasets: [{
+              label: 'Request Count',
+              data: providerData.map((d) => d.value),
+              backgroundColor: ['#4BD5FF', '#ff9f4d', '#00b37e', '#7c3aed', '#f97316']
+            }]
           },
-          options: { plugins: { legend: { display: false } } }
+          options: {
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} request${ctx.raw !== 1 ? 's' : ''}` } }
+            },
+            scales: {
+              x: {
+                title: { display: true, text: 'Provider', color: MUTED, font: { size: 11 } },
+                ticks: { color: MUTED, font: { size: 10 } },
+                grid: { display: false }
+              },
+              y: {
+                title: { display: true, text: 'Request Count', color: MUTED, font: { size: 11 } },
+                beginAtZero: true,
+                ticks: { color: MUTED, font: { size: 10 }, precision: 0 },
+                grid: { color: GRID }
+              }
+            },
+            responsive: true,
+            maintainAspectRatio: false
+          }
         });
       }
       async function refresh() {
