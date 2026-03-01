@@ -172,7 +172,7 @@
         background: var(--surface);
         border-radius: 16px;
         padding: 20px;
-        min-height: 220px;
+        min-height: 300px;
         display: flex;
         flex-direction: column;
         transition: box-shadow 0.2s;
@@ -182,20 +182,26 @@
       }
       .panel h3 {
         margin-top: 0;
-        margin-bottom: 0;
+        margin-bottom: 4px;
         font-size: 11px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
         color: var(--muted);
         font-weight: 600;
       }
+      .panel-subtitle {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 0 0 12px;
+        line-height: 1.4;
+      }
       .chart-skeleton,
       .chart-canvas {
-        margin-top: 12px;
+        margin-top: 4px;
         border-radius: 8px;
         background: var(--surface-strong);
-        height: 180px;
-        max-height: 180px;
+        height: 220px;
+        max-height: 220px;
         flex: 1;
       }
       .chart-skeleton {
@@ -623,24 +629,24 @@
             <div class="panels">
             <div class="panel">
               <h3>Cost per Request</h3>
-              <p style="color:var(--muted);font-size:12px;margin:-8px 0 12px">USD cost of each inference call over time</p>
+              <p class="panel-subtitle">USD cost of each inference call over time</p>
               <canvas id="chart-cost" class="chart-canvas"></canvas>
             </div>
             <div class="panel">
               <h3>Latency Distribution</h3>
-              <p style="color:var(--muted);font-size:12px;margin:-8px 0 12px">How many requests fall into each response-time bucket</p>
+              <p class="panel-subtitle">How many requests fall into each response-time bucket</p>
               <canvas id="chart-latency" class="chart-canvas"></canvas>
             </div>
             </div>
             <div class="panels">
             <div class="panel">
               <h3>Error Rate Trend</h3>
-              <p style="color:var(--muted);font-size:12px;margin:-8px 0 12px">Success vs. error per request (flat = all OK, spike = error)</p>
+              <p class="panel-subtitle">Success vs. error per request (flat = all OK, spike = error)</p>
               <canvas id="chart-errors" class="chart-canvas"></canvas>
             </div>
             <div class="panel">
               <h3>Provider Usage</h3>
-              <p style="color:var(--muted);font-size:12px;margin:-8px 0 12px">Share of requests routed to each LLM provider</p>
+              <p class="panel-subtitle">Share of requests routed to each LLM provider</p>
               <canvas id="chart-models" class="chart-canvas"></canvas>
             </div>
             </div>
@@ -679,24 +685,24 @@
           <section class="view" data-view="analytics">
           <div class="panel">
             <h3>Requests by Endpoint</h3>
-            <p style="color:var(--muted);font-size:12px;margin:-8px 0 12px">Which routes are called most often</p>
+            <p class="panel-subtitle">Which routes are called most often</p>
             <canvas id="chart-analytics" class="chart-canvas"></canvas>
           </div>
           <div class="panel">
             <h3>Avg Latency by Hour</h3>
-            <p style="color:var(--muted);font-size:12px;margin:-8px 0 12px">Average response time grouped by hour of day</p>
+            <p class="panel-subtitle">Average response time grouped by hour of day</p>
             <canvas id="chart-hourly" class="chart-canvas"></canvas>
           </div>
           </section>
           <section class="view" data-view="events">
           <div class="panel">
             <h3>Retry Timeline</h3>
-            <p style="color:var(--muted);font-size:12px;margin:-8px 0 12px">Number of retries per request over time</p>
+            <p class="panel-subtitle">Number of retries per request over time</p>
             <canvas id="chart-events" class="chart-canvas"></canvas>
           </div>
           <div class="panel">
             <h3>Requests by Provider</h3>
-            <p style="color:var(--muted);font-size:12px;margin:-8px 0 12px">Total requests routed to each LLM provider</p>
+            <p class="panel-subtitle">Total requests routed to each LLM provider</p>
             <canvas id="chart-callers" class="chart-canvas"></canvas>
           </div>
           </section>
@@ -954,7 +960,7 @@
               y: {
                 title: { display: true, text: 'Cost (USD)', color: MUTED, font: { size: 11 } },
                 beginAtZero: true,
-                ticks: { color: MUTED, font: { size: 10 }, callback: (v) => `$${Number(v).toFixed(4)}` },
+                ticks: { color: MUTED, font: { size: 10 }, callback: (v) => v === 0 ? '$0' : `$${Number(v).toFixed(4)}` },
                 grid: { color: GRID }
               }
             },
@@ -1031,13 +1037,12 @@
                 grid: { color: GRID }
               },
               y: {
-                title: { display: true, text: 'Request Status', color: MUTED, font: { size: 11 } },
                 beginAtZero: true,
                 suggestedMax: 100,
                 ticks: {
-                  color: MUTED, font: { size: 10 },
+                  color: MUTED, font: { size: 11, weight: '500' },
                   stepSize: 100,
-                  callback: (v) => v === 0 ? 'Success' : v === 100 ? 'Error' : ''
+                  callback: (v) => v === 0 ? '✓ Success' : v === 100 ? '✗ Error' : ''
                 },
                 grid: { color: GRID }
               }
