@@ -917,19 +917,13 @@
         const isLight = document.body.classList.contains('light-theme');
         const MUTED = isLight ? '#888' : '#7a7a7a';
         const GRID = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.07)';
-        const sliceSize = 30;
-        const history = events.length ? [...events].slice(-sliceSize) : [];
-        const paddingCount = Math.max(sliceSize - history.length, 0);
-        const paddedHistory = [
-          ...Array.from({ length: paddingCount }, () => null),
-          ...history
-        ];
-        const labels = paddedHistory.map((evt) =>
-          evt ? new Date(evt.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''
+        const history = events.length ? [...events].slice(-30) : [];
+        const labels = history.map((evt) =>
+          new Date(evt.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         );
-        const costData = paddedHistory.map((evt) => evt ? Number(evt.costUsd.toFixed(6)) : null);
-        const errorPctData = paddedHistory.map((evt) => evt ? (evt.success ? 0 : 100) : null);
-        const attemptData = paddedHistory.map((evt) => evt ? Math.max(0, evt.attemptCount - 1) : null);
+        const costData = history.map((evt) => Number(evt.costUsd.toFixed(6)));
+        const errorPctData = history.map((evt) => evt.success ? 0 : 100);
+        const attemptData = history.map((evt) => Math.max(0, evt.attemptCount - 1));
 
         // 1. Performance Metrics — cost per request over time
         createChart('chart-cost', {
@@ -944,8 +938,7 @@
               borderWidth: 2,
               tension: 0.3,
               pointRadius: 3,
-              fill: true,
-              spanGaps: true
+              fill: true
             }]
           },
           options: {
@@ -1022,8 +1015,7 @@
               stepped: true,
               tension: 0,
               pointRadius: 3,
-              fill: true,
-              spanGaps: true
+              fill: true
             }]
           },
           options: {
@@ -1156,8 +1148,7 @@
               borderWidth: 2,
               tension: 0.3,
               pointRadius: 3,
-              fill: true,
-              spanGaps: true
+              fill: true
             }]
           },
           options: {
